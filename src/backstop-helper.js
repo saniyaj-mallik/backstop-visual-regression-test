@@ -1,7 +1,10 @@
-const fs = require('fs-extra')
-const path = require('path')
-const { v4: uuidv4 } = require('uuid')
-const backstop = require('backstopjs')
+import fs from 'fs-extra'
+import path, { dirname } from 'path'
+import { v4 as uuidv4 } from 'uuid'
+import backstop from 'backstopjs'
+import { fileURLToPath } from 'url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // Generate a unique run directory
 function createRunDir() {
@@ -116,7 +119,7 @@ function parseResult(runDir) {
   }
 }
 
-module.exports = {
+export {
   createRunDir,
   generateBackstopConfig,
   writeConfig,

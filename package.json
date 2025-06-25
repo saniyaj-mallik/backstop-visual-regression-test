@@ -2,10 +2,9 @@
   "name": "backstop-visual-regression-test",
   "version": "1.0.0",
   "main": "server.js",
+  "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "puppeteer browsers install chrome"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -13,10 +12,10 @@
   "description": "",
   "dependencies": {
     "backstopjs": "^6.3.25",
+    "cors": "^2.8.5",
     "express": "^5.1.0",
     "fs-extra": "^11.3.0",
     "path": "^0.12.7",
-    "uuid": "^11.1.0",
-    "puppeteer": "^21.3.8"
+    "uuid": "^11.1.0"
   }
 }
