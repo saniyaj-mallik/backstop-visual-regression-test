@@ -76,7 +76,7 @@ node server.js
 
 - `POST /api/compare`: Run a visual regression test between two URLs.
 - `GET /api/tests/all`: Get up to 20 most recent test results.
-- `POST /api/test/sitemap`: Given two sitemap URLs, returns arrays of all links found in both sitemaps (matched by path, excluding domain), a list of missing paths, and the domains for both sitemaps for reconstructing full URLs.
+- `POST /api/test/sitemap`: Given two sitemap URLs, returns arrays of all links found in both sitemaps (matched by path, excluding domain), a list of missing paths, the domains for both sitemaps for reconstructing full URLs, and visual regression test results for each matching path.
 
 Route definitions are in `routes/api.js` and controller logic is in `controllers/apiController.js`.
 
@@ -99,7 +99,19 @@ Route definitions are in `routes/api.js` and controller logic is in `controllers
     "inRef": ["/page3", ...]
   },
   "allRefUrls": ["https://ref.com/page1", ...],
-  "allTestUrls": ["https://test.com/page1", ...]
+  "allTestUrls": ["https://test.com/page1", ...],
+  "testresults": [
+    {
+      "path": "/page1",
+      "passed": true,
+      "mismatchPercentage": 0.0,
+      "reportUrl": "/backstop_data/xxxx/html_report/index.html"
+    },
+    {
+      "path": "/page4",
+      "error": "Visual regression test failed"
+    }
+  ]
 }
 ```
 

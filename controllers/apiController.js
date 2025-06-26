@@ -90,9 +90,14 @@ export async function getSitemapLinks(req, res) {
   }
   try {
     // Helper to fetch and parse sitemap
-    async function fetchSitemapLinks(url) {
-      const response = await fetch(url)
-      if (!response.ok) throw new Error(`Failed to fetch sitemap: ${url}`)
+    async function fetchSitemapLinks(url, label) {
+      let response
+      try {
+        response = await fetch(url)
+      } catch (err) {
+        throw new Error(`Failed to reach ${label} sitemap: ${url}`)
+      }
+      if (!response.ok) throw new Error(`Failed to fetch ${label} sitemap: ${url}`)
       const xml = await response.text()
       const parser = new XMLParser({ ignoreAttributes: false })
       const parsed = parser.parse(xml)
@@ -107,10 +112,15 @@ export async function getSitemapLinks(req, res) {
       }
       return urls
     }
-    const [testLinks, refLinks] = await Promise.all([
-      fetchSitemapLinks(testsitemapurl),
-      fetchSitemapLinks(refsitemapurl)
-    ])
+    let testLinks, refLinks
+    try {
+      [testLinks, refLinks] = await Promise.all([
+        fetchSitemapLinks(testsitemapurl, 'test'),
+        fetchSitemapLinks(refsitemapurl, 'ref')
+      ])
+    } catch (err) {
+      return res.status(502).json({ error: err.message })
+    }
     // Map URLs to their paths
     function getPath(url) {
       try {
@@ -138,6 +148,28 @@ export async function getSitemapLinks(req, res) {
     }
     const testDomain = getDomain(testLinks)
     const refDomain = getDomain(refLinks)
+    // For each matching path, run a visual regression test
+    const testresults = []
+    for (const pathStr of matchingUrls) {
+      const testUrl = testDomain + pathStr
+      const refUrl = refDomain + pathStr
+      let result
+      try {
+        const runInfo = createRunDir()
+        const runDir = runInfo.runDir
+        const config = generateBackstopConfig({ refUrl, testUrl, viewport: { width: 1280, height: 800 }, runDir })
+        const configPath = writeConfig(config, runDir)
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('BackstopJS run timed out')), 5 * 60 * 1000))
+        await Promise.race([
+          runBackstop(configPath, runDir),
+          timeoutPromise
+        ])
+        result = parseResult(runDir)
+      } catch (err) {
+        result = { error: err.message || 'Visual regression test failed' }
+      }
+      testresults.push({ path: pathStr, ...result })
+    }
     res.json({
       testDomain,
       refDomain,
@@ -147,7 +179,8 @@ export async function getSitemapLinks(req, res) {
         inRef: missingInRef
       },
       allRefUrls: refLinks,
-      allTestUrls: testLinks
+      allTestUrls: testLinks,
+      testresults
     })
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to fetch or parse sitemaps' })
