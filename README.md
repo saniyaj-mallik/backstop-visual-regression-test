@@ -64,6 +64,45 @@ node server.js
 - uuid
 - path
 
+## Project Structure
+
+- `server.js`: Main Express app setup and middleware. Mounts API routes.
+- `routes/`: Express route definitions (e.g., `api.js`).
+- `controllers/`: API controller logic (e.g., `apiController.js`).
+- `src/`: BackstopJS helpers and core logic.
+- `backstop_data/`: BackstopJS reports and data.
+
+## API Endpoints
+
+- `POST /api/compare`: Run a visual regression test between two URLs.
+- `GET /api/tests/all`: Get up to 20 most recent test results.
+- `POST /api/test/sitemap`: Given two sitemap URLs, returns arrays of all links found in both sitemaps (matched by path, excluding domain), a list of missing paths, and the domains for both sitemaps for reconstructing full URLs.
+
+Route definitions are in `routes/api.js` and controller logic is in `controllers/apiController.js`.
+
+### Example: POST `/api/test/sitemap`
+**Request Body:**
+```json
+{
+  "testsitemapurl": "https://example.com/post-sitemap.xml",
+  "refsitemapurl": "https://example.com/post-sitemap.xml"
+}
+```
+**Response:**
+```json
+{
+  "testDomain": "https://test.com",
+  "refDomain": "https://ref.com",
+  "matchingUrls": ["/page1", ...],
+  "missingUrls": {
+    "inTest": ["/page2", ...],
+    "inRef": ["/page3", ...]
+  },
+  "allRefUrls": ["https://ref.com/page1", ...],
+  "allTestUrls": ["https://test.com/page1", ...]
+}
+```
+
 ---
 
 MIT License
